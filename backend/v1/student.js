@@ -1,5 +1,6 @@
 const express = require("express");
 const StudentDB = require("../models/student");
+const jwt = require("jsonwebtoken")
 const router = express.Router();
 
 router.post("/create", async (req, res) => {
@@ -87,6 +88,18 @@ router.delete("/:id", async (req, res) => {
 
 })
 
+router.post('/refresh', (req, res) => {
+    const refreshToken = req.body.refreshToken;
+
+    jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(403).send('Invalid refresh token');
+        }
+
+        const accessToken = jwt.sign({ username: decoded.name }, process.env.ACCESS_SECRET_KEY, { expiresIn: '15m' });
+        res.json({ accessToken });
+    });
+});
 
 
 module.exports = router;
